@@ -1,0 +1,16 @@
+table.data-table {
+    width: 100%;
+    border: thin solid #80808055
+}
+
+table.data-table th {
+    border-bottom: thin solid #80808055;
+    text-align: right;
+    padding: 3px 8px;
+}
+
+table.data-table td {
+    border-bottom: thin solid #80808033;
+    text-align: right;
+    padding: 3px 8px;
+}

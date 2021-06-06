@@ -1,0 +1,30 @@
+/* flex.css LATEST AS OF 10/2/2020 */
+.flex { display: flex; }
+.flex.row { flex-direction: row; }
+.flex.column { flex-direction: column; }
+.flex.wrap { flex-wrap: wrap; }
+.flex.nowrap { flex-wrap: nowrap; }
+
+.flex.justify-start { justify-content: flex-start; }
+.flex.justify-center { justify-content: center; }
+.flex.justify-end { justify-content: flex-end; }
+
+.flex.align-start { align-items: flex-start; }
+.flex.align-center { align-items: center; }
+.flex.align-end { align-items: flex-end; }
+.flex.align-stretch { align-items: stretch; }
+.flex.align-baseline { align-items: baseline; }
+.flex.align-auto { align-items: auto; }
+
+.align-self-start { align-self: flex-start; }
+.align-self-center { align-self: center; }
+.align-self-end { align-self: flex-end; }
+.align-self-stretch { align-self: stretch; }
+.align-self-baseline { align-self: baseline; }
+
+.flex > .grow { flex-grow: 1; }
+.flex > .shrink { flex-shrink: 1; }
+.flex.row.spaced>*:not(:last-child) { margin-right: 8px;}
+.flex.column.spaced>*:not(:last-child) { margin-bottom: 8px;}
+.flex.cell { justify-content: center; align-items: center;}
+

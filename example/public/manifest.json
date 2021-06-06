@@ -1,6 +1,6 @@
 {
-  "short_name": "ts-lib-template",
-  "name": "ts-lib-template",
+  "short_name": "sampling-buffer",
+  "name": "sampling-buffer",
   "icons": [
     {
       "src": "favicon.ico",

@@ -1,9 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import DataTable from './DataTable';
-
 import { SamplingBuffer, ClosedCircuitBuffer } from "@reactiff/sampling-buffer";
 import tradeSampleFields from "./tradeSampleFields";
-import RandomWalk from './RandomWalk';
+import RandomWalk from '@reactiff/random-walk';
 
 const rndWalk = new RandomWalk(1, 1000, 500, 10, 10);
 

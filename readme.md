@@ -1,172 +1,196 @@
+[![NPM](https://img.shields.io/npm/v/@reactiff/sampling-buffer.svg)](https://www.npmjs.com/package/@reactiff/sampling-buffer) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 # @reactiff/sampling-buffer
 
-Real-Time and Streaming data loop-recording, resampling, calculation, transformation.
+An awesome Real-Time data capture lib with Closed-circuit buffers, providing infinite, seamless recording and processing.
+  
+## Why
+
+You are building a real-time high frequency data processing app that does something along the lines of:
+- IOT data collection / Sensor monitoring / Real-time analytics
+- Algorithmic Trading / Reak-time Risk analysis / Data Aggregation
+- Audio / Video / Real-time Digital Signal Processing
+- AI / ML Prediction / Classification / Regression
+- Real-time Data Science
+  
+
+## What
+
+This library will easily do the following for you:
+- Capture and allocate real-time sporadic data into periodic, interval based samples
+- Map data to custom fields (Series) 
+- Perform spot, rolling and cumulative calculations e.g. min, max, mean, sum, stdev, etc.
+- Interpolate and impute values across any number of axes
+- Bifurcate/segregate data into tracks based on attributes
+- Capture and synchronize data from multiple sources
+  
+
+## Flyweight Pattern
+
+The lib offers several important advantages in Performance and Memory utilization, as it records data into Closed-circuit buffers caleld Tracks, similar to the way CCTV works.  
+You may also know this Design Pattern as [Flyweight](https://en.wikipedia.org/wiki/Flyweight_pattern).  Each track is essentially an array of fixed length, 
+containing empty placeholders in the shape of your data.   
+
+
+## How
+All you need to do is:
+1. Set the sampling rate - the time interval in milliseconds between each sample.
+2. Add fields with formulas
+<br>
+<br>
+
+--- 
 
 <br>
 
-[![NPM](https://img.shields.io/npm/v/@reactiff/sampling-buffer.svg)](https://www.npmjs.com/package/@reactiff/sampling-buffer) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
-
-<br>
-
-- Efficiently record and consume real-time data with loop recording
-- Define custom fields (Series) and calculations
-- Define rolling-window calculations e.g. moving averages, cumsum, etc.
-- Bifurcate/segregate data into separate parallel tracks
-- Automatically aggregate data into periodic samples
-
-<br>
-
-
-## Install
+## Install 
 
 ```bash
 yarn add @reactiff/sampling-buffer
 ```
 
----
+<br>
 
-## Usage
-
-Here is an example of usage inside React function component:
+## Basic usage
 
 ```ts
-import React, { useState, useEffect } from 'react';
-import { SamplingBuffer, ClosedCircuitBuffer } from '@reactiff/sampling-buffer';
-
-const buffer = new SamplingBuffer({
-    interval:       1000,             // [^1] milliseconds
-    bufferLength:   3600,             // [^2] total samples per track
-    trackKeys:      ['exch'],         // [^3] unique track key 
-    fields:         sampleFields,
+const buffer = new SamplingBuffer({ 
+    interval:       1000, // 1000 ms == 1 second
+    bufferLength:   3600,         
+    fields:         [ 'time', 'price', 'qty' ],     
 });
-
-/**
-[^1] - Time interval between each sample<br>
-[^2] - Total samples in the loop (Closed Circuit Buffer)<br>
-[^3] - Combination of fields that makes up unique track key<br>
-*/
-
-export default const DataComponent = (props: any) => {
-
-    const [tracks, setTracks] = useState([]);
-    const [data, setData]     = useState();
-    
-    
-    const readData = (track) => {
-        const data = {
-            cols  = Object.keys(track.series),
-            items = new Array(track.length),
-        };
-        // read items in FIFO or LIFO order
-        track.fifo((pos, buffer) => {
-            data.items[pos.ordinal] = buffer[pos.index];
-        });
-        setData(data);
-    };
-
-
-    useEffect(() => {
-        
-        // handle each track's updates
-        buffer.onTrackStart = (track) => {
-            track.onUpdate = () => readData(track);
-            setTracks(tt => tt.concat(track));
-        };
-        
-        // handle synchronized interval ticks
-        buffer.onInterval = () => {
-            const track = Object.values(buffer.tracks)[0];
-            readTrackData(track);
-        }
-
-        // start sampling
-        buffer.startSampling();
-
-
-        let lastPrice = 100;
-        const simulateDataEvent = () => {
-            
-            // generate new random price
-            lastPrice = lastPrice + (Math.random() - 0.5);
-            
-            buffer.capture({
-                time:   new Date().getTime(),
-                exch:   'KRAKEN',
-                price:  lastPrice,
-                qty:    Math.round(Math.random() * 100 - 50),
-            });
-
-            // repeat
-            setTimeout(simulateDataEvent, 0);
-        };
-
-        simulateDataEvent();
-
-        /** NOTE:
-        *   Once the buffer starts sampling, it will produce interval samples
-        *   even if no data is coming in.
-        */
-    }, [tracks, readData]);
-
-
-  // simulate trade events
-  useEffect(() => {
-    const delayCapture = () => {
-      simulateTradeEvent(new Date().getTime());
-      if (!m.stopped) {
-        setTimeout(delayCapture, 0);
-      }
-    };
-    delayCapture();
-  }, [m.stopped]);
-}
-
 ```
 
+<details>
+<summary>Click to expand the Full Example 1 - Readout</summary>
+
+```tsx
+// EXAMPLE 1 - SIMPLE READOUT
+
+import { SamplingBuffer } from '@reactiff/sampling-buffer';
+
+const INTERVAL = 1000;  // ms
+const LENGTH   = 3600;  // this means one hour
+
+const sampler  = new SamplingBuffer({
+    interval:     INTERVAL,   
+    bufferLength: LENGTH,             
+    fields:       [ 'time', 'price', 'qty' ],
+});
+
+// declare once and read values in each time
+const items    = new Array(LENGTH);
+
+// THE READOUT FUNCTION
+function readOut(track) {
+    track.fifo((pos, track) => {
+        items[pos.ordinal] = track[pos.index];
+    });
+};
+
+sampler.onTrackStart = (t) => t.onUpdate = () => readOut(t);
+sampler.startSampling();
+
+// --------------------------------------------------------
+// EMULATE INCOMING DATA
+
+const date = new Date();    // for gettine time
+const data = {              // reusable data placeholder
+    time:  0,
+    price: 100,
+    qty:   0,
+};
+
+const emulateDataEvent = () => {
+    data.price = data.price + (Math.random() - 0.5);
+    data.qty   = Math.round(Math.random() * 100 - 50);
+    data.time  = date.getTime();
+
+    // PASS IT TO SAMPLER
+    sampler.capture(data);
+
+    // repeat
+    setTimeout(emulateDataEvent, 0);
+};
+
+emulateDataEvent();
+```
+</details>
 
 <br>
 
-## Field definitions
-Defining the fields for each sample in circular track.
+---
+
+## fifo() / lifo()
+
+These methods facilitate reading data from the Closed-circuit buffer, 
+taking care of complicated cursor and offset positions.  
+
+They both accept a callback of form:
 
 ```ts
-import { value, when } from '@reactiff/sampling-buffer'
+(pos, track) => void
+```
 
+| Param | Description |
+| ----- | ----------- |
+| track | internal array of samples |
+| pos   | indexer: { index, ordinal, relative } |
+
+<br>
+
+**pos props**
+
+| Prop | Purpose |
+| ---- | ------- |
+| pos.index | <sup>1</sup> Sample index in the Track |
+| pos.ordinal | **True** iteration number (always zero based) |
+| pos.relative | Relative offset from cursor |
+
+<br>
+
+> <sup>1</sup>  Sample index should only be used for accessing the Sample in the Track.
+> It doesn't always start with zero, rather it starts with internal cursor position 
+> within the Closed-circuit loop.
+
+<br>
+
+---
+
+## Custom fields and spot calculations
+
+In previous example we used an array of field names corresponding to data fields.
+You can define your own fields and how they should be calculated.
+
+```ts
 const sampleFields = {            
-    time:           (d, curr) => value(curr, d.time), 
+    time:       (d, curr) => value(curr, d.time), 
 
-                    [^4]
-    _buy:           (d) => when(d.qty > 0, () => d.buy  = 1),
-    _sell:          (d) => when(d.qty < 0, () => d.sell = 1),
+    _buy:       (d) => when(d.qty > 0, () => d.buy  = 1),  // [^4]
+    _sell:      (d) => when(d.qty < 0, () => d.sell = 1),
 
                     // From a single price field we can create
                     // Open High Low and Close (candlestick)
-    open:           {   fn: (d, curr) => value(curr, d.price), 
-                        fill: p => p.close }, 
+    open:       {   fn: (d, curr) => value(curr, d.price), 
+                    fill: p => p.close },                  // [^5]
 
-    high:           {   fn: (d, curr) => Math.max(d.price, value(curr, d.price)), 
-                        fill: p => p.close }, 
+    high:       {   fn: (d, curr) => Math.max(d.price, value(curr, d.price)), 
+                    fill: p => p.close }, 
 
-    low:            {   fn: (d, curr) => Math.min(d.price, value(curr, d.price)), 
-                        fill: p => p.close },
+    low:        {   fn: (d, curr) => Math.min(d.price, value(curr, d.price)), 
+                    fill: p => p.close },
 
-    close:          {   fn: (d) => d.price, 
-                        fill: p => p.close },
-
-                    ...
+    close:      {   fn: (d) => d.price, 
+                    fill: p => p.close },
     
-    buyVol:         {   fn: (d, curr) => when(d.buy, value(curr, 0) + d.qty), 
-                        fill: () => 0 },
+    buyVol:     {   fn: (d, curr) => when(d.buy, value(curr, 0) + d.qty), 
+                    fill: () => 0 },
 
-    sellVol:        {   fn: (d, curr) => when(d.sell, value(curr, 0) + d.qty), 
-                        fill: () => 0 },
+    sellVol:    {   fn: (d, curr) => when(d.sell, value(curr, 0) + d.qty), 
+                    fill: () => 0 },
     
-    cumNetVol:      {   fn: (d, curr) => value(curr, 0) + d.qty, 
-                        cumulative: true    [^4]
-                    },
-
-                    ...
-
+    cumNetVol:  { fn: (d, curr) => value(curr, 0) + d.qty, 
+                    cumulative: true  // [^6]
+                },
 };
 ```
 
@@ -176,14 +200,16 @@ const sampleFields = {
         - they perform some operation e.g. here they set a value on the data object itself
         <br>
 
-[^5] - Cumulative fields do not get reset with each new sample, rather their values are rolled forward.
+[^5] - The fill() callback defines how the field's value should be calculated for empty Samples
+
+[^6] - Cumulative fields do not get reset with each new sample, rather their values are rolled forward
 
 <br>
 
 ---
 
 
-## Custom Calculation Expressions
+## Expressions and Rolling Calculations
 
 ```ts
 // Simple Moving Average over 10:

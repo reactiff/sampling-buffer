@@ -10,6 +10,7 @@
     "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"
   },
   "dependencies": {
+    "@reactiff/random-walk": "^1.0.0",
     "@reactiff/sampling-buffer": "link:..",
     "@testing-library/jest-dom": "link:../node_modules/@testing-library/jest-dom",
     "@testing-library/react": "link:../node_modules/@testing-library/react",

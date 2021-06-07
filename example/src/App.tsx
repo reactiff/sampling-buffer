@@ -63,16 +63,19 @@ buffer.addExpression('cross', (_: any) => {
   return undefined;
 });
 
+// data capsule
+const capsule = {
+  time:   0,
+  exch:   'RNDWALK',
+  price:  0,
+  qty:    0,
+};
+
 function simulateTradeEvent(time: number) {
-  const trade = {
-    time,
-    exch:   'RNDWALK',
-    price:  Math.round(rndWalk.next()),
-    qty:    Math.round(Math.random() * 100 - 50),
-  };
-  buffer.capture( trade , 
-    (name, track) => track.tags.exch === trade.exch
-  );
+  capsule.time  = time;
+  capsule.price = rndWalk.next();
+  capsule.qty   = Math.round(Math.random() * 100 - 50);
+  buffer.capture(capsule);
 }
 
 export default () => {

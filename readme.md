@@ -3,6 +3,7 @@
 
 An awesome Real-Time data capture lib with Closed-circuit buffers, providing infinite, seamless recording and processing.
   
+  
 ## Why
 
 You are building a real-time high frequency data processing app that does something along the lines of:

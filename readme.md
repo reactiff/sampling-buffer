@@ -166,44 +166,41 @@ They both accept a callback of form:
 
 ---
 
-## Custom fields and spot calculations
+## Defining fields and spot calculations
 
-In previous example we used an array of field names corresponding to data fields.
-You can define your own fields and how they should be calculated.
+In previous example we used an array of field names corresponding to data fields.  You can define your own fields and how they should be calculated.
 
 ```ts
-const sampleFields = {            
-    time:       (d, curr) => value(curr, d.time), 
+import { value, when } from '@reactiff/sampling-buffer';
 
+const field = {            
     _buy:       (d) => when(d.qty > 0, () => d.buy  = 1),  // [^4]
     _sell:      (d) => when(d.qty < 0, () => d.sell = 1),
 
-                    // From a single price field we can create
-                    // Open High Low and Close (candlestick)
-    open:       {   fn: (d, curr) => value(curr, d.price), 
-                    fill: p => p.close },                  // [^5]
+    open:       {   
+                    fn: (d, curr) => value(curr, d.price), 
+                    fill: p => p.close 
+                },                  // [^5]
 
-    high:       {   fn: (d, curr) => Math.max(d.price, value(curr, d.price)), 
-                    fill: p => p.close }, 
+    high:       {   
+                    fn: (d, curr) => Math.max(
+                        d.price, 
+                        value(curr, d.price)), 
+                    fill: p => p.close 
+                }, 
 
-    low:        {   fn: (d, curr) => Math.min(d.price, value(curr, d.price)), 
-                    fill: p => p.close },
-
-    close:      {   fn: (d) => d.price, 
-                    fill: p => p.close },
-    
-    buyVol:     {   fn: (d, curr) => when(d.buy, value(curr, 0) + d.qty), 
-                    fill: () => 0 },
-
-    sellVol:    {   fn: (d, curr) => when(d.sell, value(curr, 0) + d.qty), 
-                    fill: () => 0 },
-    
-    cumNetVol:  { fn: (d, curr) => value(curr, 0) + d.qty, 
+    buyVol:     {   
+                    fn: (d, curr) => when(d.buy, 
+                        value(curr, 0) + d.qty), 
+                    fill: () => 0 
+                },
+                
+    cumNetVol:  {   
+                    fn: (d, curr) => value(curr, 0) + d.qty, 
                     cumulative: true  // [^6]
                 },
 };
 ```
-
 [^4] - Underscore fields are special
         - they are run first
         - they do not get added to sample (hidden)
@@ -216,10 +213,36 @@ const sampleFields = {
 
 <br>
 
+<details>
+<summary>Importing field groups</summary>
+
+```ts
+import { FieldGroups } from '.';
+
+const fields: {
+    ...FieldGroups.cryptoTrade.time.fields,
+    ...FieldGroups.cryptoTrade.ohlc.fields,
+    ...FieldGroups.cryptoTrade.side.fields,
+    ...FieldGroups.cryptoTrade.stats.fields,
+    ...FieldGroups.cryptoTrade.volume.fields,
+    ...FieldGroups.cryptoTrade.mv.fields,
+},
+
+```
+</details>
+
+<br>
+
+
+
+
 ---
 
+## Rolling Window / Moving Average calculations 
+<br>
 
-## Expressions and Rolling Calculations
+### (SMA)
+You can define expressions by performing Rolling Window calculations, also known as Moving Averages on a single Serie, over N number of samples in its history.  Here is how you would define a Simple Moving Average (SMA) of 10:
 
 ```ts
 // Simple Moving Average over 10:
@@ -229,7 +252,10 @@ buffer.addExpression('sma10', (series) => {
 })
 ```
 
-Once an expression is added, it can be accessed as a Serie in other calculations.  Here is such an example.  EMA uses SMA in its first observation:
+once such expression is added, it can also be used in other expressions.  For example, Exponential Moving Average (EMA) uses a slightly different formula, where it uses its previous value as the basis of calculation.  However, there is no previous sample for the very First value in the serie of course, that's why previous SMA of same length is used.  Therefore, an EMA expression requires N + 1 elements in the serie to work.
+<br>
+
+### (EMA)
 ```ts
 // Exponential Moving Average of 10
 buffer.addExpression('ema10', (series) => {
@@ -256,6 +282,29 @@ buffer.addExpression('ema10', (series) => {
 })
 ```   
 
+## Crossing Moving Averages
+Here is another useful example where we check if EMA and SMA cross each other.  Note that the output is only generated when one of the two conditions is met:
+<br>
+
+### (EMA crosses SMA)
+```ts
+buffer.addExpression('ema10xsma10', (_: any) => {
+
+  // check cross to the up side
+  if (_.ema10.value( 0) > _.sma10.value( 0) &&
+      _.ema10.value(-1) < _.sma10.value(-1)) {
+        return 1;
+  }
+
+  // check cross to the down side
+  if (_.ema10.value( 0) < _.sma10.value( 0) &&
+      _.ema10.value(-1) > _.sma10.value(-1)) {
+        return -1;
+  }
+  
+  return undefined;
+});
+```
 
 ## License
 

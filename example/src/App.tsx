@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import DataTable from './DataTable';
-import { SamplingBuffer, ClosedCircuitBuffer } from "@reactiff/sampling-buffer";
-import tradeSampleFields from "./tradeSampleFields";
+import { SamplingBuffer, ClosedCircuitBuffer, FieldGroups } from "@reactiff/sampling-buffer";
 import RandomWalk from '@reactiff/random-walk';
 
 const rndWalk = new RandomWalk(1, 1000, 500, 10, 10);
@@ -10,7 +9,14 @@ const buffer = new SamplingBuffer({
   interval:       1000,               // in milliseconds
   bufferLength:   30,                 // total samples in closed circuit buffer
   trackKeys:      ['exch'],           // create track for each unique combination of these data fields
-  fields:         tradeSampleFields,
+  fields:         {
+    ...FieldGroups.cryptoTrade.time.fields,
+    ...FieldGroups.cryptoTrade.ohlc.fields,
+    ...FieldGroups.cryptoTrade.side.fields,
+    ...FieldGroups.cryptoTrade.stats.fields,
+    ...FieldGroups.cryptoTrade.volume.fields,
+    ...FieldGroups.cryptoTrade.mv.fields,
+  },
 });
 
 buffer.addExpression('sma10', (series: any) => {

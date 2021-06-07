@@ -1,8 +1,9 @@
 import SamplingBuffer from './SamplingBuffer';
 import ClosedCircuitBuffer from './ClosedCircuitBuffer';
 import Serie from './Serie';
-
 import { ConditionalOp } from "./types";
+
+import FieldGroups from './FieldGroups';
 
 export function value(value: any, defaultValue: any) {
     return typeof value !== 'undefined' ? value : defaultValue;
@@ -18,4 +19,4 @@ export function when(condition: boolean, value: number | undefined | Conditional
     return undefined;
 }
 
-export { SamplingBuffer, ClosedCircuitBuffer, Serie };
+export { SamplingBuffer, ClosedCircuitBuffer, Serie, FieldGroups };

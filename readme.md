@@ -7,7 +7,7 @@ An awesome Real-Time data capture lib with Closed-circuit buffers, providing inf
 
 You are building a real-time high frequency data processing app that does something along the lines of:
 - IOT data collection / Sensor monitoring / Real-time analytics
-- Algorithmic Trading / Reak-time Risk analysis / Data Aggregation
+- Algorithmic Trading / Real-time Risk analysis / Data Aggregation
 - Audio / Video / Real-time Digital Signal Processing
 - AI / ML Prediction / Classification / Regression
 - Real-time Data Science
@@ -35,12 +35,10 @@ containing empty placeholders in the shape of your data.
 All you need to do is:
 1. Set the sampling rate - the time interval in milliseconds between each sample.
 2. Add fields with formulas
-<br>
+
 <br>
 
 --- 
-
-<br>
 
 ## Install 
 
@@ -53,11 +51,23 @@ yarn add @reactiff/sampling-buffer
 ## Basic usage
 
 ```ts
-const buffer = new SamplingBuffer({ 
+const sampler = new SamplingBuffer({ 
     interval:       1000, // 1000 ms == 1 second
     bufferLength:   3600,         
     fields:         [ 'time', 'price', 'qty' ],     
 });
+
+sampler.onTrackStart = (track) => {
+    track.onUpdate = () => {
+        const samples = [];
+        track.fifo((pos, track) => {
+            items[pos.ordinal] = track[pos.index];
+        });
+        // analyze samples...
+    }
+};
+
+sampler.startSampling();
 ```
 
 <details>

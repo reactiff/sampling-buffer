@@ -1,6 +1,0 @@
-echo "Publishing..."
-
-@echo off
-set /p msg="Enter git commit message: "
-
-echo %msg%

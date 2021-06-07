@@ -6,8 +6,8 @@ git add .
 git commit -m "%msg%"
 git push
 
-npm version patch
-npm publish
+call npm version patch
+call npm publish
 
 yarn deploy
 

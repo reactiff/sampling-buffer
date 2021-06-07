@@ -5,7 +5,7 @@ git add .
 @echo off
 set /p msg="Enter git commit message: "
 
-git commit -m "%msg"
+git commit -m "%msg%"
 
 
 echo Done
